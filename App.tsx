@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View, Button, ActivityIndicator } from 'react-native';
-import { Image } from 'expo-image';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import {
   Asset,
   AssetField,
@@ -8,11 +8,14 @@ import {
   Query,
   usePermissions,
 } from 'expo-media-library';
+import SwipeCard from './components/SwipeCard';
 
 export default function App() {
   const [permission, requestPermission] = usePermissions();
   const [photos, setPhotos] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [toDelete, setToDelete] = useState<Asset[]>([]);
 
   useEffect(() => {
     if (permission?.granted) {
@@ -29,10 +32,30 @@ export default function App() {
         .limit(50)
         .exe();
       setPhotos(assets);
+      setCurrentIndex(0);
+      setToDelete([]);
     } catch (error) {
       console.error('Error cargando fotos:', error);
     } finally {
       setLoading(false);
+    }
+  }
+
+  function keepPhoto() {
+    setCurrentIndex((i) => i + 1);
+  }
+
+  function markForDeletion() {
+    setToDelete((list) => [...list, photos[currentIndex]]);
+    setCurrentIndex((i) => i + 1);
+  }
+
+  async function confirmDelete() {
+    try {
+      await Asset.delete(toDelete);
+      await loadPhotos();
+    } catch (error) {
+      console.error('Error borrando fotos:', error);
     }
   }
 
@@ -65,11 +88,38 @@ export default function App() {
     );
   }
 
+  if (currentIndex >= photos.length) {
+    return (
+      <View style={styles.container}>
+        {toDelete.length === 0 ? (
+          <Text style={styles.text}>No has marcado ninguna foto para borrar.</Text>
+        ) : (
+          <>
+            <Text style={styles.text}>Has marcado {toDelete.length} fotos para borrar.</Text>
+            <Button title={`Borrar ${toDelete.length} fotos`} color="#d11a2a" onPress={confirmDelete} />
+          </>
+        )}
+        <Button title="Empezar de nuevo" onPress={loadPhotos} />
+      </View>
+    );
+  }
+
   return (
-    <View style={styles.container}>
-      <Image source={{ uri: photos[0].id }} style={styles.photo} contentFit="contain" />
-      <Text style={styles.text}>{photos.length} fotos cargadas</Text>
-    </View>
+    <GestureHandlerRootView style={styles.container}>
+      <Text style={styles.counter}>
+        {currentIndex + 1} / {photos.length}
+      </Text>
+      <SwipeCard
+        key={photos[currentIndex].id}
+        uri={photos[currentIndex].id}
+        onSwipeLeft={keepPhoto}
+        onSwipeRight={markForDeletion}
+      />
+      <View style={styles.buttons}>
+        <Button title="⬅️ Guardar" onPress={keepPhoto} />
+        <Button title="Borrar ➡️" color="#d11a2a" onPress={markForDeletion} />
+      </View>
+    </GestureHandlerRootView>
   );
 }
 
@@ -81,13 +131,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 20,
   },
-  photo: {
-    width: '100%',
-    height: '70%',
-  },
   text: {
     fontSize: 16,
     textAlign: 'center',
     marginVertical: 16,
+  },
+  counter: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 8,
+  },
+  buttons: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+    marginTop: 16,
   },
 });
