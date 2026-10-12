@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Modal, View, Text, Button, Pressable, StyleSheet } from 'react-native';
-import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
-
+import DateTimePicker from '@react-native-community/datetimepicker';
 type Props = {
   visible: boolean;
   onClose: () => void;
@@ -23,14 +22,14 @@ export default function DateRangeModal({ visible, onClose, onConfirm }: Props) {
   const [end, setEnd] = useState(() => new Date());
   const [editing, setEditing] = useState<Field>('start');
 
-  function handleChange(_event: DateTimePickerEvent, selected?: Date) {
-    if (!selected) return;
-    if (editing === 'start') {
-      setStart(selected);
-    } else {
-      setEnd(selected);
-    }
+function handleChange(_event: unknown, selected?: Date) {
+  if (!selected) return;
+  if (editing === 'start') {
+    setStart(selected);
+  } else {
+    setEnd(selected);
   }
+}
 
   function handleConfirm() {
     const from = new Date(start);
@@ -73,7 +72,7 @@ export default function DateRangeModal({ visible, onClose, onConfirm }: Props) {
           mode="date"
           display="inline"
           locale="es-ES"
-          onChange={handleChange}
+          onValueChange={handleChange}
           minimumDate={editing === 'end' ? start : undefined}
           maximumDate={editing === 'start' ? end : new Date()}
         />
