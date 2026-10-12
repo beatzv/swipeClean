@@ -27,3 +27,20 @@
 - Al terminar, vuelve a cargar las 50 ultimas fotos, incluidas las que ya decidiste guardar
 - Boton para deshacer la ultima decision, por si deslizas sin querer
 - Mas libertad para elegir que fotos limpiar 
+
+## 12/10/2026
+
+### Hecho
+- Selector de rango de fechas, un popup con el calendario nativo de iOS (`@react-native-community/datetimepicker`) por defecto se siguen cargando las 50 fotos
+- Consulta de fotos anade filtros por fecha de creacion, cuando elegimos fechas, cmax de 300 fotos.
+- CI con GitHub Actions: en cada Pull Request y en cada push a `main` se ejecutan ESLint y la comprobacion de tipos de TypeScript
+
+### Problemas resuletos
+- El calendario impide elegir un Hasta anterior al Desde evitar el error.
+- `onChange` del calendario estaba deprecado, cambiado a `onValueChange`.
+
+### Pendiente
+- Cargar las fotos por tandas cuando un rango tiene mas de 300.
+- No volver a mostrar las fotos ya revisadas.
+- Boton para deshacer la ultima decision.
+- Anadir tests y ejecutarlos en la CI.
